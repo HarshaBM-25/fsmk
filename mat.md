@@ -11,10 +11,11 @@
 1. [Introduction to Booting and Bootloaders](#1-introduction-to-booting-and-bootloaders)
 2. [BIOS/MBR vs UEFI/GPT](#2-biosmbr-vs-uefigpt)
 3. [How GNU and Linux Make a Complete OS](#3-how-gnu-and-linux-make-a-complete-os)
-4. [Installation Steps: Windows and Mac](#4-installation-steps-windows-and-mac)
-5. [Common Installation Challenges (and Fixes)](#5-common-installation-challenges-and-fixes)
-6. [Quick Command Cheat Sheet](#6-quick-command-cheat-sheet)
-7. [References](#-references)
+4. [Linux Distributions (Flavours) and Desktop Environments](#4-linux-distributions-flavours-and-desktop-environments)
+5. [Installation Steps: Windows and Mac](#5-installation-steps-windows-and-mac)
+6. [Common Installation Challenges (and Fixes)](#6-common-installation-challenges-and-fixes)
+7. [Quick Command Cheat Sheet](#7-quick-command-cheat-sheet)
+8. [References](#-references)
 
 ---
 
@@ -160,9 +161,45 @@ These figures match Microsoft's documentation: MBR is limited to four partitions
 
 ---
 
-## 4. Installation Steps: Windows and Mac
+## 4. Linux Distributions (Flavours) and Desktop Environments
 
-### 4.A 🪟 On a Windows laptop (dual boot)
+### 4.1 What is a distro?
+
+A **Linux distribution (distro)** is the Linux kernel together with GNU tools, a package manager, a desktop environment and an installer, bundled and maintained by a team or company. Different distributions make different choices about stability, software updates and ease of use.
+
+### 4.2 Main distribution families
+
+| Family | Distros | Package manager | Character |
+|---|---|---|---|
+| **Debian** | Debian, Ubuntu, Linux Mint, Pop!_OS, Kali | `apt` | Large software library and generally beginner-friendly |
+| **Red Hat** | Fedora, RHEL, Rocky Linux, AlmaLinux | `dnf` | Enterprise-focused, with Fedora as the community-driven upstream |
+| **Arch** | Arch Linux, Manjaro, EndeavourOS | `pacman` | Rolling release, latest software and a more hands-on approach |
+| **SUSE** | openSUSE, SUSE Linux Enterprise (SLE) | `zypper` | Strong administration tools; widely used in enterprise environments |
+| **Independent** | Alpine Linux, NixOS, Gentoo | Varies | Specialist distributions: lightweight, reproducible or highly customizable |
+
+### 4.3 Release models
+
+- **Fixed release:** A new version is released on a planned schedule, often every 6 months to 2 years (for example, Ubuntu, Debian and Fedora). This makes upgrades more predictable.
+- **LTS (Long-Term Support):** A fixed release that receives security and maintenance updates for an extended period, often 5 years or more (for example, Ubuntu LTS).
+- **Rolling release:** Updates are delivered continuously rather than through major version releases (for example, Arch Linux and openSUSE Tumbleweed). You get newer software sooner, but updates may require more attention.
+
+### 4.4 Desktop environments
+
+A **desktop environment (DE)** controls the graphical look and feel of the system—panels, menus, windows, settings and the file manager. It does not change the underlying Linux distribution or kernel.
+
+- **GNOME:** Modern, clean and minimal; the default desktop on standard Ubuntu and Fedora Workstation.
+- **KDE Plasma:** Highly customizable, with a familiar Windows-like layout.
+- **XFCE:** Lightweight and suitable for older or lower-powered hardware.
+- **Cinnamon:** Traditional desktop layout; the default on Linux Mint Cinnamon Edition.
+- **MATE / LXQt:** Other lightweight desktop environment options.
+
+> **Remember:** A distribution and a desktop environment are different things. For example, Fedora is a distribution, while GNOME and KDE Plasma are desktop environments. A distribution may offer multiple desktop editions.
+
+---
+
+## 5. Installation Steps: Windows and Mac
+
+### 5.A 🪟 On a Windows laptop (dual boot)
 
 #### Before you start
 
@@ -205,7 +242,7 @@ These figures match Microsoft's documentation: MBR is limited to four partitions
 
 ---
 
-### 4.B 🍎 On a Mac
+### 5.B 🍎 On a Mac
 
 First check which kind you have: **Apple menu → About This Mac**. **Apple Silicon** (M-series) and **Intel** Macs work very differently.
 
@@ -244,9 +281,9 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 
 ---
 
-## 5. Common Installation Challenges (and Fixes)
+## 6. Common Installation Challenges (and Fixes)
 
-### 5.1 USB doesn't boot or doesn't appear in the boot menu
+### 6.1 USB doesn't boot or doesn't appear in the boot menu
 
 | | |
 |---|---|
@@ -255,7 +292,7 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 
 > 💡 On T2 Macs, if you see an Apple message that a software update is required, Secure Boot may still be enforced; re-check Startup Security Utility and try the *other* orange "EFI Boot" entry **[11]**.
 
-### 5.2 Secure Boot blocks the installer
+### 6.2 Secure Boot blocks the installer
 
 | | |
 |---|---|
@@ -274,7 +311,7 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 
 For unofficial or self-built kernels, all kernels must be signed to be loaded by GRUB under Secure Boot. Alternatively, Ubuntu documents disabling validation in shim with `sudo mokutil --disable-validation` (then reboot) **[1]**. Canonical also documents how to sign your own modules and EFI binaries **[3]**.
 
-### 5.3 Windows missing from the GRUB menu, or Windows won't start after installing Linux
+### 6.3 Windows missing from the GRUB menu, or Windows won't start after installing Linux
 
 | | |
 |---|---|
@@ -283,7 +320,7 @@ For unofficial or self-built kernels, all kernels must be signed to be loaded by
 
 > This entry is not in your original notes (item 3 was missing); it is one of the most common dual-boot problems, so it is included here.
 
-### 5.4 Black screen or freeze at boot or on first login
+### 6.4 Black screen or freeze at boot or on first login
 
 | | |
 |---|---|
@@ -298,7 +335,7 @@ For unofficial or self-built kernels, all kernels must be signed to be loaded by
 
 **What it does:** per the Linux kernel documentation, `nomodeset` disables kernel modesetting, so graphics (DRM) drivers do not change display modes or do accelerated rendering **[4]**. It is a **troubleshooting** option, not a permanent setting.
 
-### 5.5 Wi-Fi not working
+### 6.5 Wi-Fi not working
 
 | | |
 |---|---|
@@ -317,7 +354,7 @@ For unofficial or self-built kernels, all kernels must be signed to be loaded by
 
 > Ubuntu's own documentation states its goal is for cards to work automatically, and points to *Additional Drivers* as the first place to look **[6]**.
 
-### 5.6 Bluetooth not working or missing
+### 6.6 Bluetooth not working or missing
 
 | | |
 |---|---|
@@ -344,7 +381,7 @@ If `rfkill list` shows **Hard blocked: yes**, check for a physical wireless swit
 
 ---
 
-## 6. Quick Command Cheat Sheet
+## 7. Quick Command Cheat Sheet
 
 | Task | Command / Action |
 |---|---|
