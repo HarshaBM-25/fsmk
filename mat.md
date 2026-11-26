@@ -56,11 +56,11 @@ A **bootloader** is a small program that loads the operating system kernel into 
 
 | Bootloader | Used by |
 |---|---|
-| **GRUB2** | Most Linux distributions |
-| **systemd-boot** | Fedora (some setups), Arch users, lightweight UEFI systems |
+| **shim + GRUB2** | Fedora generally uses shim and GRUB2 by default on UEFI systems; other Linux distributions commonly use GRUB2 |
+| **systemd-boot** | An alternative UEFI boot manager used in some Linux installations |
 | **Windows Boot Manager** | Windows |
-| **boot.efi** | macOS |
-| **U-Boot** | Embedded devices, Raspberry Pi-type boards |
+| **`boot.efi`** | Apple's boot file on Intel-based Macs; Apple Silicon uses a different boot architecture |
+| **U-Boot** | Embedded devices and many single-board computers |
 
 ---
 
@@ -98,7 +98,7 @@ A **bootloader** is a small program that loads the operating system kernel into 
 
 | | **MBR** | **GPT** |
 |---|---|---|
-| Max disk/partition size | 2 TB | Practically unlimited (theoretical 18 exabytes) |
+| Max disk/partition size | About 2 TiB with standard 512-byte sectors | Very large; Microsoft commonly quotes a theoretical 18-exabyte GPT limit. Actual usable capacity depends on sector size, OS and implementation, and is far beyond typical desktop disks |
 | Partitions | 4 primary (or 3 + an extended with logical ones) | 128 by default |
 | Partition table copies | One | Primary plus a backup at the end of the disk |
 | Corruption protection | None | CRC checksums |
@@ -204,11 +204,11 @@ A **desktop environment (DE)** controls the graphical look and feel of the syste
 #### Before you start
 
 - [ ] **Back up** your important data.
-- [ ] **Save the BitLocker recovery key** if BitLocker is on (Settings → Device encryption, or your Microsoft account). Resizing partitions or changing boot settings can trigger a recovery-key prompt.
+- [ ] **Save your BitLocker recovery key** before changing partitions or boot settings. Windows may label this as **BitLocker** or **Device Encryption** (especially on Home editions); Device Encryption can enable BitLocker protection automatically. A saved recovery key helps you recover access if Windows asks for it, but it does **not** decrypt the drive.
 - [ ] **Turn off Fast Startup:** Control Panel → Power Options → *Choose what the power buttons do* → *Change settings that are currently unavailable* → untick **Turn on fast startup** → Save. Then shut down fully. Ubuntu's community documentation explains that Fast Startup puts Windows into a hybrid shutdown state that GRUB cannot reliably start Windows from **[7]**.
 - [ ] **Check you're on UEFI/GPT** with `msinfo32` (look at *BIOS Mode*).
 
-> ⚠️ **BitLocker and "install alongside":** Ubuntu's documentation states the installer cannot read a BitLocker-encrypted Windows partition, so the guided "alongside Windows" option cannot be used safely until BitLocker is turned off. See the official Ubuntu Desktop installation tutorial **[15]**.
+> ⚠️ **BitLocker / Device Encryption and "install alongside":** Saving the recovery key alone is not enough. For Ubuntu's guided **"Install alongside Windows"** path, turn off BitLocker/Device Encryption and wait for Windows to finish decrypting the drive before starting installation. Ubuntu's installer cannot safely map the encrypted Windows partition for this guided operation **[15][16]**.
 
 #### Steps
 
@@ -219,7 +219,7 @@ A **desktop environment (DE)** controls the graphical look and feel of the syste
    ```
 3. **Make a bootable USB** (8 GB or more) using **Rufus**, **Balena Etcher** or **Ventoy**. In Rufus choose **GPT** with **UEFI**.
 4. **Free up disk space:** open *Disk Management*, right-click the **C:** drive, choose **Shrink Volume**, and free about 40–100 GB. **Leave the space unallocated and don't format it**; the Ubuntu installer handles it **[8][9]**.
-5. **Boot from the USB:** restart and press the boot-menu key (F12, F2, Esc or Del, depending on the brand). Pick the USB entry that says **UEFI**.
+5. **Boot from the USB:** restart and open the **one-time boot menu** using the key shown by the manufacturer. Common keys include **F12, F11, F9, Esc** or sometimes **F8**; the key varies by model and is not necessarily the same as the BIOS/UEFI setup key. If unsure, check the computer manufacturer's support page. Pick the USB entry marked **UEFI** **[17]**.
 6. **Try the live session first** and test Wi-Fi, Bluetooth, sound and display.
 7. **Start the installer**, then choose language, keyboard layout and network.
 8. **Pick the install type:**
@@ -261,8 +261,9 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 
 1. Use **Fedora Asahi Remix** (a collaboration between the Fedora Asahi SIG and the Asahi Linux project).
 2. Run the **Asahi installer from macOS Terminal**. It prepares the system, downloads the image and sets up the boot process **[10]**.
-3. **Check hardware support first.** Support varies by chip and model; Fedora's documentation points to the *Feature Support* page on the Asahi Linux site **[10]**. Fedora's announcement lists M1 and M2 machines as supported **[10]**, so do not assume newer chips work without checking.
-4. Know the limits: you must keep a **working macOS installation**, because the installer and bootloader updates rely on macOS admin credentials; avoid touching the macOS container partition; and the installer does not currently support full-disk encryption **[10]**.
+3. **M3 support:** Fedora Asahi Remix has initial support for **M3, M3 Pro and M3 Max** systems. Support is model- and feature-specific; check the official Asahi device list and feature matrix before installing **[10][18]**.
+4. **Hardware limitations:** On M3-family systems, GPU acceleration and some display/Thunderbolt features remain incomplete or work in progress; feature support differs by exact Mac model. Do not assume every device feature is supported. Check the live feature matrix before proceeding **[18]**.
+5. Keep a **working macOS installation** and back up first. Follow the official Fedora Asahi installation instructions and do not repartition or remove macOS partitions manually.
 5. **Back up first.**
 
 #### Intel Macs (dual boot)
@@ -270,7 +271,7 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 1. **Back up** with Time Machine.
 2. Download the **x86_64 ISO** and make a USB with Balena Etcher.
 3. **Free up space:** Disk Utility → Partition, and resize macOS to leave room.
-4. **If it has a T2 security chip** (roughly 2018–2020 models): boot to Recovery (**Cmd + R**) → **Startup Security Utility** → set Secure Boot to **No Security** and **Allow booting from external or removable media** **[11][12]**.
+4. **If it has a T2 security chip** (including the **2017 iMac Pro** and several Intel Mac models released from 2018 onward): boot to Recovery (**Cmd + R**) → **Startup Security Utility** → set Secure Boot to **No Security** and **Allow booting from external or removable media** **[11][12]**.
 5. Restart while holding **Option (⌥)** and pick the USB entry (shown as **"EFI Boot"**).
 6. Run the live session, then the installer. Install into the free space and be careful **not to wipe macOS**.
 7. Hold **Option** at startup to choose between macOS and Linux.
@@ -288,7 +289,7 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 | | |
 |---|---|
 | **Cause** | Corrupted ISO, wrong USB write mode (GPT/UEFI vs MBR/BIOS), or the wrong boot key. |
-| **Fix** | Verify the ISO checksum and recreate the USB with Rufus, Etcher or Ventoy. Check the laptop's boot-menu key (F2, F12, Esc or Del). Make sure the USB entry you pick matches your firmware mode (UEFI vs legacy). |
+| **Fix** | Verify the ISO checksum and recreate the USB with Rufus, Etcher or Ventoy. Use the **one-time boot-device menu** key (often F12, F11, F9 or Esc, depending on the manufacturer/model); this may differ from the key for firmware setup. Consult the device maker's instructions if needed. Make sure the USB entry you pick matches your firmware mode (UEFI vs legacy). |
 
 > 💡 On T2 Macs, if you see an Apple message that a software update is required, Secure Boot may still be enforced; re-check Startup Security Utility and try the *other* orange "EFI Boot" entry **[11]**.
 
@@ -297,8 +298,11 @@ These cannot boot a normal x86 Linux USB. There are two ways.
 | | |
 |---|---|
 | **Cause** | Some distros or custom kernels are not signed with keys the firmware trusts. |
-| **Background** | Most x86 hardware ships with Microsoft certificates in firmware. Ubuntu uses a Microsoft-signed **shim** and a Canonical-signed **GRUB**; since Ubuntu 18.04 LTS, Secure Boot verifies the bootloader, kernel **and** kernel modules **[1]**. |
+| **Background** | Secure Boot checks the trust chain for UEFI boot components (for example, shim and GRUB) and the signed kernel. Kernel module signature enforcement is a separate check performed by the running Linux kernel; it can reject unsigned or untrusted modules when enforcement is enabled **[1][19]**. |
 | **Fix** | Ubuntu, Fedora and Debian usually work with Secure Boot on. If you hit trouble: **(a)** enroll a key when prompted (**MOK**, Machine Owner Key), or **(b)** disable Secure Boot in the UEFI settings. |
+
+
+> **Secure Boot certificates (2026 transition):** The Microsoft UEFI CA 2011 used to sign many third-party UEFI boot applications reached its expiry date on **27 June 2026**. The signing transition is to the **Microsoft UEFI CA 2023** (and a separate Option ROM CA 2023). This does **not** mean every existing Linux USB suddenly stopped booting on that date: behaviour depends on the firmware's trusted/revoked certificates and the bootloader's signing chain. On newer installation media, use a current image with updated signed boot components. On older firmware, check the computer manufacturer's firmware/certificate-update guidance and avoid changing Secure Boot databases manually unless you understand the recovery path **[20][21]**.
 
 **MOK enrollment, in short** **[1]**:
 
@@ -316,9 +320,47 @@ For unofficial or self-built kernels, all kernels must be signed to be loaded by
 | | |
 |---|---|
 | **Cause** | **Fast Startup** left Windows in a hybrid-shutdown state that GRUB cannot boot from **[7]**; or the firmware boot order was changed; or BitLocker prompts for a recovery key because boot settings changed. |
-| **Fix** | In Windows, disable Fast Startup and do a full shutdown **[7]**. Enter the UEFI settings and check the boot order (Windows Boot Manager vs the Linux entry). In Linux, run `sudo update-grub` so GRUB re-scans for Windows. Keep your BitLocker recovery key handy. |
+| **Fix** | In Windows, disable Fast Startup and do a full shutdown **[7]**. Check the firmware boot order. If using GRUB, confirm `os-prober` is installed and enabled in the GRUB configuration, then regenerate the configuration using the command for your distribution below. Keep the BitLocker recovery key available. |
 
-> This entry is not in your original notes (item 3 was missing); it is one of the most common dual-boot problems, so it is included here.
+
+**Enable Windows detection with GRUB (`os-prober`)**
+
+GRUB 2.06 and later disables automatic `os-prober` use by default. This is intentional: probing other operating systems and generating boot entries automatically can have security implications **[22]**. If you want GRUB to detect Windows:
+
+**Ubuntu / Debian-based systems**
+
+```bash
+sudo apt update
+sudo apt install os-prober
+```
+
+Edit `/etc/default/grub` and set (or add) this line:
+
+```bash
+GRUB_DISABLE_OS_PROBER=false
+```
+
+Then regenerate the menu:
+
+```bash
+sudo update-grub
+```
+
+**Fedora**
+
+Install the package if it is not already present:
+
+```bash
+sudo dnf install os-prober
+```
+
+Set `GRUB_DISABLE_OS_PROBER=false` in `/etc/default/grub`, then regenerate the GRUB configuration:
+
+```bash
+sudo grub2-mkconfig -o /boot/grub2/grub.cfg
+```
+
+On Fedora UEFI systems, use the distribution's documented GRUB configuration path; do not overwrite the small EFI-side forwarding/stub file. If Windows still does not appear, check that Windows was shut down fully, both systems use the same UEFI/legacy boot mode, and the Windows EFI boot files are present.
 
 ### 6.4 Black screen or freeze at boot or on first login
 
@@ -390,7 +432,8 @@ If `rfkill list` shows **Hard blocked: yes**, check for a physical wireless swit
 | Verify ISO checksum (Windows) | `certutil -hashfile file.iso SHA256` |
 | Verify ISO checksum (Linux/Mac) | `sha256sum file.iso` / `shasum -a 256 file.iso` |
 | Check Secure Boot state | `mokutil --sb-state` |
-| Re-scan for other OSes in GRUB | `sudo update-grub` |
+| Re-scan for other OSes in GRUB (Ubuntu/Debian) | `sudo update-grub` |
+| Rebuild GRUB config (Fedora) | `sudo grub2-mkconfig -o /boot/grub2/grub.cfg` |
 | Edit boot options once | Press **`e`** at the GRUB menu |
 | List radio blocks | `rfkill list` |
 | Unblock Bluetooth | `sudo rfkill unblock bluetooth` |
@@ -418,13 +461,13 @@ If `rfkill list` shows **Hard blocked: yes**, check for a physical wireless swit
 7. Ubuntu Community Help Wiki. *Installing Xubuntu* (Fast Startup section). <https://help.ubuntu.com/community/InstallingXubuntu>
 8. Ubuntu Community Help Wiki. *DualBoot/Windows.* <https://help.ubuntu.com/community/DualBoot/Windows>
 9. Dell Support. *How to Install Ubuntu and Windows 8 Through Windows 11 as a Dual Boot on your Dell Computer.* <https://www.dell.com/support/article/SLN301754/en>
-15. Canonical. *Install Ubuntu Desktop* (official tutorial). <https://canonical-ubuntu-desktop-documentation.readthedocs-hosted.com/en/latest/tutorial/install-ubuntu-desktop/>
+15. Ubuntu Desktop Documentation. *Install Ubuntu Desktop.* <https://ubuntu.com/desktop/docs/en/latest/tutorial/install-ubuntu-desktop/>
 
 **Mac installation**
 
-10. Fedora Docs. *Fedora Asahi Remix: FAQ* and *Deviations.* <https://docs.fedoraproject.org/ca/fedora-asahi-remix/faq/> · <https://docs.fedoraproject.org/nl/fedora-asahi-remix/deviations/> · Announcement: <https://fedoramagazine.org/?p=39462&preview=true>
+10. Fedora Asahi Remix. *Official installation and device support.* <https://asahilinux.org/fedora/> · Asahi Linux. *M3 Series Feature Support.* <https://asahilinux.org/docs/platform/feature-support/m3/>
 11. t2linux Wiki. *Pre install steps.* <https://wiki.t2linux.org/guides/preinstall/>
-12. Apple Platform Security. *Startup Security Utility on a Mac with an Apple T2 Security Chip.* <https://support.apple.com/en-gw/guide/security-pdf/secc7b34e5b5/web>
+12. Apple Support. *Mac computers with the Apple T2 Security Chip.* <https://support.apple.com/en-us/103265> · *Security features on your iMac Pro.* <https://support.apple.com/en-in/guide/imac-pro/apd352d84210/mac>
 
 **Partitioning (MBR/GPT/UEFI)**
 
@@ -433,3 +476,14 @@ If `rfkill list` shows **Hard blocked: yes**, check for a physical wireless swit
 **GNU and Linux**
 
 14. GNU Project. *Linux and the GNU System.* <https://www.gnu.org/gnu-and-linux> · *GNU/Linux FAQ.* <https://www.gnu.org/gnu/gnu-linux-faq>
+
+
+**Additional references for this revision**
+
+16. Ubuntu Desktop Documentation. *BitLocker during Ubuntu installation* and *Turn off BitLocker in Windows.* <https://ubuntu.com/desktop/docs/en/latest/reference/bitlocker-during-ubuntu-installation/> · <https://ubuntu.com/desktop/docs/en/24.04/how-to/turn-off-bitlocker-in-windows/>
+17. Microsoft Learn. *Boot to UEFI Mode or Legacy BIOS Mode* (firmware menu keys vary by manufacturer). <https://learn.microsoft.com/en-in/windows-hardware/manufacture/desktop/boot-to-uefi-mode-or-legacy-bios-mode?view=windows-11>
+18. Asahi Linux. *M3 Series Feature Support.* <https://asahilinux.org/docs/platform/feature-support/m3/> · Fedora Magazine. *Fedora Linux Asahi Remix 45 Beta* (initial M3/M3 Pro/M3 Max support). <https://fedoramagazine.org/announcing-fedora_asahi_remix_45_beta/>
+19. The Linux Kernel Documentation. *Kernel module signing facility.* <https://www.kernel.org/doc/html/latest/admin-guide/module-signing.html>
+20. Microsoft Learn. *Secure Boot 2023 Certificate Transition Guidance for Linux Distributions.* <https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/linux-distribution-guidance-handling-2023keys?view=windows-11>
+21. Microsoft Learn. *Update Secure Boot Certificates for Windows Devices.* <https://learn.microsoft.com/en-us/troubleshoot/windows-client/windows-security/update-secure-boot-certificates>
+22. GNU GRUB Manual. *GRUB_DISABLE_OS_PROBER.* <https://www.gnu.org/software/grub/manual/grub/grub.html>
